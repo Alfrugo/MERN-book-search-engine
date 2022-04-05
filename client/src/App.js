@@ -1,21 +1,20 @@
 import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  createHttpLink,
+} from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
 import SearchBooks from './pages/SearchBooks';
 import SavedBooks from './pages/SavedBooks';
 import Navbar from './components/Navbar';
-import { setContext } from '@apollo/client/link/context'
-
-
-
-// alfredo {{{{
-import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
-
-// for http link we might not have to include the base url as the URI value 
-
+// Construct our main GraphQL API endpoint
 const httpLink = createHttpLink({
-  uri: 'http://localhost:3001/graphql',
+  uri: '/graphql',
 });
-
+// Construct request middleware that will attach the JWT token to every request as an `authorization` header
 const authLink = setContext((_, { headers }) => {
   // get the authentication token from local storage if it exists
   const token = localStorage.getItem('id_token');
@@ -27,44 +26,25 @@ const authLink = setContext((_, { headers }) => {
     },
   };
 });
-
 const client = new ApolloClient({
-  link: authLink.concat (httpLink),
+  // Set up our client to execute the `authLink` middleware prior to making the request to our GraphQL API
+  link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
 });
-
-
 function App() {
   return (
-    <ApolloProvider client={client}>  // changed the header from Router to AppolloProvider
+    <ApolloProvider client={client}>
       <Router>
-//       <>
-//         <Navbar />
-//         <Switch>
-//           <Route exact path='/' component={SearchBooks} />
-//           <Route exact path='/saved' component={SavedBooks} />
-//           <Route render={() => <h1 className='display-2'>Wrong page!</h1>} />
-//         </Switch>
-//       </>
-//     </Router>
+        <>
+          <Navbar />
+          <Switch>
+            <Route exact path="/" component={SearchBooks} />
+            <Route exact path="/saved" component={SavedBooks} />
+            <Route render={() => <h1 className="display-2">Wrong page!</h1>} />
+          </Switch>
+        </>
+      </Router>
     </ApolloProvider>
   );
 }
-// function App() {
-//   return (
-//     <Router>
-//       <>
-//         <Navbar />
-//         <Switch>
-//           <Route exact path='/' component={SearchBooks} />
-//           <Route exact path='/saved' component={SavedBooks} />
-//           <Route render={() => <h1 className='display-2'>Wrong page!</h1>} />
-//         </Switch>
-//       </>
-//     </Router>
-//   );
-// }
-
-// }}}} alfredo 
-
 export default App;
